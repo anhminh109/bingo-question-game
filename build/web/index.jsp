@@ -24,9 +24,9 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Bingo </title>
+        <title>Bingo</title>
         <link rel="icon" type="image/png" href="<%= request.getContextPath() %>/assets/images/bingo.png">
-        <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/css/style.css?v=20260529-2">
+        <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/css/style.css?v=20260530-answer-slide">
     </head>
     <body>
         <div class="app-shell">
@@ -52,11 +52,13 @@
                         <% for (int i = 1; i <= 25; i++) {
                             Question question = questions.get(i);
                             String questionText = question == null ? "" : question.getQuestionText();
+                            String answer = question == null ? "" : question.getAnswer();
                         %>
                         <button class="bingo-cell"
                                 type="button"
                                 data-cell="<%= i %>"
-                                data-question="<%= html(questionText) %>">
+                                data-question="<%= html(questionText) %>"
+                                data-answer="<%= html(answer) %>">
                             <%= i %>
                         </button>
                         <% } %>
@@ -71,18 +73,31 @@
                             <h2 id="questionNumber">Chưa chọn câu hỏi</h2>
                         </div>
                     </div>
+
                     <div class="question-box is-empty" id="questionText">
                         <span class="empty-mark" aria-hidden="true">?</span>
                         <span>Bấm vào một ô trên bảng Bingo để hiển thị câu hỏi.</span>
                     </div>
+
+                    <button class="answer-toggle" type="button" id="showAnswerBtn" disabled>
+                        Hiển thị đáp án
+                    </button>
+
+                    <div class="answer-box" id="answerBox" aria-hidden="true">
+                        <div class="answer-content">
+                            <span class="answer-label">Đáp án</span>
+                            <p id="answerText"></p>
+                        </div>
+                    </div>
+
                     <div class="hint">
                         <span class="hint-icon" aria-hidden="true">i</span>
-                        <span>Các ô đã chọn sẽ được đổi màu. Nút Reset game chỉ xóa đánh dấu trên màn hình, không xóa câu hỏi trong database.</span>
+                        <span>Chuột phải vào ô đã chọn để bỏ chọn nếu bấm nhầm. Nút Reset game chỉ xóa đánh dấu trên màn hình, không xóa dữ liệu trong database.</span>
                     </div>
                 </aside>
             </main>
         </div>
 
-        <script src="<%= request.getContextPath() %>/assets/js/script.js?v=20260529-2" charset="UTF-8"></script>
+        <script src="<%= request.getContextPath() %>/assets/js/script.js?v=20260530-answer-slide" charset="UTF-8"></script>
     </body>
 </html>

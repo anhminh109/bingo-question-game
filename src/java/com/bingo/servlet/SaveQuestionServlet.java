@@ -21,16 +21,18 @@ public class SaveQuestionServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
         Map<Integer, String> questionTexts = new LinkedHashMap<>();
+        Map<Integer, String> answers = new LinkedHashMap<>();
 
         for (int i = 1; i <= 25; i++) {
             questionTexts.put(i, request.getParameter("question_" + i));
+            answers.put(i, request.getParameter("answer_" + i));
         }
 
         try {
-            questionDAO.saveAllQuestions(questionTexts);
+            questionDAO.saveAllQuestions(questionTexts, answers);
             response.sendRedirect(request.getContextPath() + "/setting.jsp?saved=1");
         } catch (SQLException ex) {
-            throw new ServletException("Không thể lưu câu hỏi.", ex);
+            throw new ServletException("Không thể lưu câu hỏi và đáp án.", ex);
         }
     }
 }
