@@ -6,7 +6,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -32,7 +31,6 @@ public class QuestionDAO {
                 ));
             }
         }
-
         return questions;
     }
 
@@ -55,19 +53,17 @@ public class QuestionDAO {
                 }
             }
         }
-
         return new Question(cellNumber, "", "");
     }
 
     public void saveOrUpdateQuestion(int cellNumber, String questionText, String answer) throws SQLException {
         ensureSchema();
 
-        String sql = "MERGE questions AS target "
-                + "USING (SELECT ? AS cell_number, ? AS question_text, ? AS answer) AS source "
-                + "ON target.cell_number = source.cell_number "
-                + "WHEN MATCHED THEN UPDATE SET question_text = source.question_text, answer = source.answer "
-                + "WHEN NOT MATCHED THEN INSERT (cell_number, question_text, answer) "
-                + "VALUES (source.cell_number, source.question_text, source.answer);";
+        String sql = "INSERT INTO questions (cell_number, question_text, answer) "
+                + "VALUES (?, ?, ?) "
+                + "ON CONFLICT (cell_number) DO UPDATE SET "
+                + "question_text = EXCLUDED.question_text, "
+                + "answer = EXCLUDED.answer";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -82,23 +78,24 @@ public class QuestionDAO {
     public void saveAllQuestions(Map<Integer, String> questionTexts, Map<Integer, String> answers) throws SQLException {
         ensureSchema();
 
-        String sql = "MERGE questions AS target "
-                + "USING (SELECT ? AS cell_number, ? AS question_text, ? AS answer) AS source "
-                + "ON target.cell_number = source.cell_number "
-                + "WHEN MATCHED THEN UPDATE SET question_text = source.question_text, answer = source.answer "
-                + "WHEN NOT MATCHED THEN INSERT (cell_number, question_text, answer) "
-                + "VALUES (source.cell_number, source.question_text, source.answer);";
+        String sql = "INSERT INTO questions (cell_number, question_text, answer) "
+                + "VALUES (?, ?, ?) "
+                + "ON CONFLICT (cell_number) DO UPDATE SET "
+                + "question_text = EXCLUDED.question_text, "
+                + "answer = EXCLUDED.answer";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             conn.setAutoCommit(false);
+
             for (int i = 1; i <= 25; i++) {
                 ps.setInt(1, i);
                 ps.setString(2, clean(questionTexts.get(i)));
                 ps.setString(3, clean(answers.get(i)));
                 ps.addBatch();
             }
+
             ps.executeBatch();
             conn.commit();
         }
@@ -106,6 +103,7 @@ public class QuestionDAO {
 
     public void resetQuestions() throws SQLException {
         ensureSchema();
+
         String sql = "UPDATE questions SET question_text = '', answer = '' WHERE cell_number BETWEEN 1 AND 25";
 
         try (Connection conn = DBConnection.getConnection();
@@ -116,28 +114,26 @@ public class QuestionDAO {
     }
 
     private void ensureSchema() throws SQLException {
-        ensureAnswerColumn();
+        String sql = "CREATE TABLE IF NOT EXISTS questions ("
+                + "id SERIAL PRIMARY KEY, "
+                + "cell_number INT NOT NULL UNIQUE, "
+                + "question_text TEXT, "
+                + "answer VARCHAR(500)"
+                + ")";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.executeUpdate();
+        }
+
         ensureDefaultRows();
     }
 
-    private void ensureAnswerColumn() throws SQLException {
-        String sql = "IF OBJECT_ID('dbo.questions', 'U') IS NOT NULL "
-                + "AND COL_LENGTH('dbo.questions', 'answer') IS NULL "
-                + "ALTER TABLE dbo.questions ADD answer NVARCHAR(500) NULL";
-
-        try (Connection conn = DBConnection.getConnection();
-             Statement statement = conn.createStatement()) {
-
-            statement.execute(sql);
-        }
-    }
-
     private void ensureDefaultRows() throws SQLException {
-        String sql = "MERGE questions AS target "
-                + "USING (SELECT ? AS cell_number, '' AS question_text, '' AS answer) AS source "
-                + "ON target.cell_number = source.cell_number "
-                + "WHEN NOT MATCHED THEN INSERT (cell_number, question_text, answer) "
-                + "VALUES (source.cell_number, source.question_text, source.answer);";
+        String sql = "INSERT INTO questions (cell_number, question_text, answer) "
+                + "VALUES (?, '', '') "
+                + "ON CONFLICT (cell_number) DO NOTHING";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -146,6 +142,7 @@ public class QuestionDAO {
                 ps.setInt(1, i);
                 ps.addBatch();
             }
+
             ps.executeBatch();
         }
     }

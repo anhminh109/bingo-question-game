@@ -2,7 +2,7 @@ FROM tomcat:10.1-jdk21
 
 RUN rm -rf /usr/local/tomcat/webapps/*
 
-COPY dist/ROOT.war /usr/local/tomcat/webapps/ROOT.war
+COPY dist/Bingo.war /usr/local/tomcat/webapps/ROOT.war
 
 EXPOSE 8080
 

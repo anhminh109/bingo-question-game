@@ -23,7 +23,7 @@ SET answer = CASE cell_number
     WHEN 11 THEN N'Nêu một kỹ năng cụ thể.'
     WHEN 12 THEN N'Nêu lựa chọn và lý do.'
     WHEN 13 THEN N'Chia sẻ một kỷ niệm cụ thể.'
-    WHEN 14 THEN N'Biết lắng nghe, giúp đỡ và tôn trọng bạn bè.'
+    WHEN 14 THEN N'Biết lắng nghe, giúp đỡ và tôn trọng bạn bè.' 
     WHEN 15 THEN N'Nêu món ăn yêu thích.'
     WHEN 16 THEN N'Nêu một hoạt động giải trí lành mạnh.'
     WHEN 17 THEN N'Nêu một việc có ích cho lớp.'
