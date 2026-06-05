@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class DBConnection {
 
-    private static final String URL = System.getenv("postgresql://anhminh:NRqMMpH6scPxiw1S9aWGrXkhdXLR9fXw@dpg-d8fh9brbc2fs73eoes3g-a.singapore-postgres.render.com/bingo_game_2ocr");
+    private static final String URL = System.getenv("DB_URL");
 
     private DBConnection() {
     }
@@ -18,6 +18,8 @@ public class DBConnection {
             throw new SQLException("Không tìm thấy PostgreSQL JDBC Driver.", ex);
         }
 
-        return DriverManager.getConnection(URL);
+        String jdbcUrl = URL.replace("postgresql://", "jdbc:postgresql://");
+
+        return DriverManager.getConnection(jdbcUrl);
     }
 }
