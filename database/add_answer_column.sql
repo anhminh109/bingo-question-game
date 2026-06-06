@@ -1,33 +1,80 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+INSERT INTO users (username, password)
+VALUES ('admin', 'admin123')
+ON CONFLICT (username) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS questions (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id),
+    cell_number INT NOT NULL,
+    question_text TEXT,
+    answer VARCHAR(500)
+);
+
+ALTER TABLE questions
+    ADD COLUMN IF NOT EXISTS user_id INT;
+
 ALTER TABLE questions
     ADD COLUMN IF NOT EXISTS answer VARCHAR(500);
 
 UPDATE questions
-SET answer = CASE cell_number
-    WHEN 1 THEN 'Tự giới thiệu rõ ràng, đủ ý.'
-    WHEN 2 THEN 'Nêu được môn học và lý do phù hợp.'
-    WHEN 3 THEN 'Nêu được một việc tốt cụ thể.'
-    WHEN 4 THEN 'Nêu một điều ước và giải thích ngắn gọn.'
-    WHEN 5 THEN 'Nêu lựa chọn và lý do.'
-    WHEN 6 THEN 'Nêu tên sách hoặc phim yêu thích.'
-    WHEN 7 THEN 'Nêu được một điều khiến bản thân tự hào.'
-    WHEN 8 THEN 'Trao đổi với bạn, hỏi thầy cô, hoặc tự tìm tài liệu.'
-    WHEN 9 THEN 'Nói lời cảm ơn chân thành với một bạn.'
-    WHEN 10 THEN 'Nêu địa điểm muốn đến.'
-    WHEN 11 THEN 'Nêu một kỹ năng cụ thể.'
-    WHEN 12 THEN 'Nêu lựa chọn và lý do.'
-    WHEN 13 THEN 'Chia sẻ một kỷ niệm cụ thể.'
-    WHEN 14 THEN 'Biết lắng nghe, giúp đỡ và tôn trọng bạn bè.'
-    WHEN 15 THEN 'Nêu món ăn yêu thích.'
-    WHEN 16 THEN 'Nêu một hoạt động giải trí lành mạnh.'
-    WHEN 17 THEN 'Nêu một việc có ích cho lớp.'
-    WHEN 18 THEN 'Nêu mục tiêu học tập cụ thể.'
-    WHEN 19 THEN 'Nêu môn thể thao yêu thích.'
-    WHEN 20 THEN 'Nêu tên người truyền cảm hứng.'
-    WHEN 21 THEN 'Nêu một tình huống hoặc điều làm em vui.'
-    WHEN 22 THEN 'Nêu một thói quen muốn cải thiện.'
-    WHEN 23 THEN 'Đặt một câu hỏi rõ ràng cho cả lớp.'
-    WHEN 24 THEN 'Mô tả ngắn gọn một ngày cuối tuần lý tưởng.'
-    WHEN 25 THEN 'Nói một lời chúc tích cực dành cho lớp.'
-    ELSE answer
-END
-WHERE cell_number BETWEEN 1 AND 25;
+SET user_id = users.id
+FROM users
+WHERE questions.user_id IS NULL
+  AND users.username = 'admin';
+
+DO $$
+DECLARE
+    constraint_record record;
+BEGIN
+    FOR constraint_record IN
+        SELECT con.conname
+        FROM pg_constraint con
+        JOIN pg_class rel ON rel.oid = con.conrelid
+        JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+        WHERE rel.relname = 'questions'
+          AND nsp.nspname = current_schema()
+          AND con.contype = 'u'
+          AND array_length(con.conkey, 1) = 1
+          AND (
+              SELECT att.attname
+              FROM pg_attribute att
+              WHERE att.attrelid = rel.oid
+                AND att.attnum = con.conkey[1]
+          ) = 'cell_number'
+    LOOP
+        EXECUTE format('ALTER TABLE questions DROP CONSTRAINT %I', constraint_record.conname);
+    END LOOP;
+END $$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'questions_user_id_fkey'
+          AND conrelid = 'questions'::regclass
+    ) THEN
+        ALTER TABLE questions
+            ADD CONSTRAINT questions_user_id_fkey
+            FOREIGN KEY (user_id) REFERENCES users(id);
+    END IF;
+END $$;
+
+ALTER TABLE questions
+    ALTER COLUMN user_id SET NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_questions_user_cell
+    ON questions (user_id, cell_number);
+
+INSERT INTO questions (user_id, cell_number, question_text, answer)
+SELECT users.id, cells.cell_number, '', ''
+FROM users
+CROSS JOIN generate_series(1, 25) AS cells(cell_number)
+WHERE users.username = 'admin'
+ON CONFLICT (user_id, cell_number) DO NOTHING;

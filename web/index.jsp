@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="com.bingo.dao.QuestionDAO"%>
 <%@page import="com.bingo.model.Question"%>
+<%@page import="com.bingo.util.SessionUtil"%>
 <%@page import="java.util.Map"%>
 <%!
     private String html(String value) {
@@ -16,8 +17,15 @@
     }
 %>
 <%
+    Integer userId = SessionUtil.getUserId(request);
+    if (userId == null) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
+    }
+
+    String username = SessionUtil.getUsername(request);
     QuestionDAO questionDAO = new QuestionDAO();
-    Map<Integer, Question> questions = questionDAO.getAllQuestions();
+    Map<Integer, Question> questions = questionDAO.getAllQuestions(userId);
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -41,8 +49,10 @@
                     </div>
                 </div>
                 <nav class="actions">
-                    <a class="button secondary" href="<%= request.getContextPath() %>/setting.jsp"><span class="button-icon">⚙</span>Setting</a>
-                    <button class="button" type="button" id="resetGameBtn"><span class="button-icon">↻</span>Reset game</button>
+                    <span class="user-pill"><%= html(username) %></span>
+                    <a class="button secondary compact" href="<%= request.getContextPath() %>/settings.jsp"><span class="button-icon">⚙</span>Setting</a>
+                    <button class="button compact" type="button" id="resetGameBtn"><span class="button-icon">↻</span>Reset game</button>
+                    <a class="button secondary compact" href="<%= request.getContextPath() %>/logout">Logout</a>
                 </nav>
             </header>
 

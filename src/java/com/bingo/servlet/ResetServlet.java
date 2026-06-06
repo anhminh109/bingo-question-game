@@ -1,6 +1,7 @@
 package com.bingo.servlet;
 
 import com.bingo.dao.QuestionDAO;
+import com.bingo.util.SessionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -17,9 +18,15 @@ public class ResetServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        Integer userId = SessionUtil.getUserId(request);
+        if (userId == null) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
+            return;
+        }
+
         try {
-            questionDAO.resetQuestions();
-            response.sendRedirect(request.getContextPath() + "/setting.jsp?reset=1");
+            questionDAO.resetQuestions(userId);
+            response.sendRedirect(request.getContextPath() + "/settings.jsp?reset=1");
         } catch (SQLException ex) {
             throw new ServletException("Không thể reset câu hỏi.", ex);
         }

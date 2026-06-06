@@ -2,6 +2,7 @@ package com.bingo.servlet;
 
 import com.bingo.dao.QuestionDAO;
 import com.bingo.model.Question;
+import com.bingo.util.SessionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,10 +20,16 @@ public class QuestionServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        Integer userId = SessionUtil.getUserId(request);
+        if (userId == null) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
+            return;
+        }
+
         response.setContentType("application/json;charset=UTF-8");
 
         try {
-            Map<Integer, Question> questions = questionDAO.getAllQuestions();
+            Map<Integer, Question> questions = questionDAO.getAllQuestions(userId);
             response.getWriter().write(toJson(questions));
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

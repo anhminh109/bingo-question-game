@@ -1,6 +1,7 @@
 package com.bingo.servlet;
 
 import com.bingo.dao.QuestionDAO;
+import com.bingo.util.SessionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,6 +20,12 @@ public class SaveQuestionServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        Integer userId = SessionUtil.getUserId(request);
+        if (userId == null) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
+            return;
+        }
+
         request.setCharacterEncoding("UTF-8");
         Map<Integer, String> questionTexts = new LinkedHashMap<>();
         Map<Integer, String> answers = new LinkedHashMap<>();
@@ -29,8 +36,8 @@ public class SaveQuestionServlet extends HttpServlet {
         }
 
         try {
-            questionDAO.saveAllQuestions(questionTexts, answers);
-            response.sendRedirect(request.getContextPath() + "/setting.jsp?saved=1");
+            questionDAO.saveAllQuestions(userId, questionTexts, answers);
+            response.sendRedirect(request.getContextPath() + "/settings.jsp?saved=1");
         } catch (SQLException ex) {
             throw new ServletException("Không thể lưu câu hỏi và đáp án.", ex);
         }
