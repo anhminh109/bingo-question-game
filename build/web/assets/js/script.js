@@ -6,8 +6,13 @@ document.addEventListener("DOMContentLoaded", function () {
     var showAnswerBtn = document.getElementById("showAnswerBtn");
     var answerBox = document.getElementById("answerBox");
     var answerText = document.getElementById("answerText");
+    var openGuideBtn = document.getElementById("openGuideBtn");
+    var guideModal = document.getElementById("guideModal");
+    var closeGuideBtn = document.getElementById("closeGuideBtn");
+    var confirmGuideBtn = document.getElementById("confirmGuideBtn");
     var currentCellNumber = "";
     var currentAnswer = "";
+    var lastFocusedElement = null;
 
     function setAnswerOpen(isOpen) {
         if (!answerBox || !showAnswerBtn) {
@@ -31,6 +36,35 @@ document.addEventListener("DOMContentLoaded", function () {
         setAnswerOpen(false);
         if (showAnswerBtn) {
             showAnswerBtn.disabled = true;
+        }
+    }
+
+    function openGuideModal() {
+        if (!guideModal) {
+            return;
+        }
+
+        lastFocusedElement = document.activeElement;
+        guideModal.classList.add("is-open");
+        guideModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("guide-modal-open");
+
+        if (closeGuideBtn) {
+            closeGuideBtn.focus();
+        }
+    }
+
+    function closeGuideModal() {
+        if (!guideModal) {
+            return;
+        }
+
+        guideModal.classList.remove("is-open");
+        guideModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("guide-modal-open");
+
+        if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+            lastFocusedElement.focus();
         }
     }
 
@@ -94,4 +128,30 @@ document.addEventListener("DOMContentLoaded", function () {
             showDefaultQuestion();
         });
     }
+
+    if (openGuideBtn) {
+        openGuideBtn.addEventListener("click", openGuideModal);
+    }
+
+    if (closeGuideBtn) {
+        closeGuideBtn.addEventListener("click", closeGuideModal);
+    }
+
+    if (confirmGuideBtn) {
+        confirmGuideBtn.addEventListener("click", closeGuideModal);
+    }
+
+    if (guideModal) {
+        guideModal.addEventListener("click", function (event) {
+            if (event.target === guideModal) {
+                closeGuideModal();
+            }
+        });
+    }
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && guideModal && guideModal.classList.contains("is-open")) {
+            closeGuideModal();
+        }
+    });
 });

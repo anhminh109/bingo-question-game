@@ -34,7 +34,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Bingo</title>
         <link rel="icon" type="image/png" href="<%= request.getContextPath() %>/assets/images/bingo.png">
-        <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/css/style.css?v=20260530-answer-slide">
+        <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/css/style.css?v=20260607-guide">
     </head>
     <body>
         <div class="app-shell">
@@ -51,6 +51,10 @@
                 <nav class="actions">
                     <span class="user-pill"><%= html(username) %></span>
                     <a class="button secondary compact" href="<%= request.getContextPath() %>/settings.jsp"><span class="button-icon">⚙</span>Setting</a>
+                    <button class="button secondary compact guide-button" type="button" id="openGuideBtn"
+                            aria-haspopup="dialog" aria-controls="guideModal">
+                        <span class="button-icon guide-button-icon" aria-hidden="true">?</span>Hướng dẫn chơi
+                    </button>
                     <button class="button compact" type="button" id="resetGameBtn"><span class="button-icon">↻</span>Reset game</button>
                     <a class="button secondary compact" href="<%= request.getContextPath() %>/logout">Logout</a>
                 </nav>
@@ -108,6 +112,30 @@
             </main>
         </div>
 
-        <script src="<%= request.getContextPath() %>/assets/js/script.js?v=20260530-answer-slide" charset="UTF-8"></script>
+        <div class="modal-backdrop" id="guideModal" role="dialog" aria-modal="true"
+             aria-labelledby="guideTitle" aria-hidden="true">
+            <section class="guide-modal" tabindex="-1">
+                <button class="modal-close" type="button" id="closeGuideBtn" aria-label="Đóng hướng dẫn">×</button>
+
+                <div class="guide-modal-header">
+                    <span class="guide-modal-icon" aria-hidden="true">?</span>
+                    <h2 id="guideTitle">Hướng dẫn chơi Bingo</h2>
+                </div>
+
+                <ol class="guide-list">
+                    <li>Người chơi sẽ trả lời các ô trên bảng Bingo 5x5.</li>
+                    <li>Mỗi ô sẽ tương ứng với một câu hỏi.</li>
+                    <li>Trả lời đúng thì ô được chọn 1 con số.</li>
+                    <li>Ai hoàn thành 5 hàng ngang, hàng dọc hoặc đường chéo trước sẽ thắng và phải hô BINGO!!!</li>
+                    <li>Có thể dùng nút hiển thị đáp án nếu người quản trò cần kiểm tra.</li>
+                </ol>
+
+                <div class="guide-actions">
+                    <button class="button compact" type="button" id="confirmGuideBtn">Đã hiểu</button>
+                </div>
+            </section>
+        </div>
+
+        <script src="<%= request.getContextPath() %>/assets/js/script.js?v=20260607-guide" charset="UTF-8"></script>
     </body>
 </html>
